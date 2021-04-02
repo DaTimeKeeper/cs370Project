@@ -1,21 +1,18 @@
-import blynklib
-import time
 import io
 import picamera
 import logging
 import socketserver
 from threading import Condition
 from http import server
-#https://picamera.readthedocs.io/en/latest/recipes2.html#web-streaming
 
 PAGE="""\
 <html>
 <head>
-<title>Rasberry Pi Video Doorbell</title>
+<title>Raspberry Pi Video Doorbell</title>
 </head>
 <body>
-<h1>PiCamera MJPEG Streaming Demo</h1>
-<img src="stream.mjpg" width="640" height="480" />
+<center><h1>Door</h1></center>
+<center><img src="stream.mjpg" width="640" height="480"></center>
 </body>
 </html>
 """
@@ -80,53 +77,14 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-
-
-BLYNK_AUTH = 'Y_3drVlwkx1gaWTjb54wCD4ERZSFBf2t'
-
-def capture():
-
-    with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
-        output = StreamingOutput()
-        camera.start_recording(output, format='mjpeg')
-        try:
-            address = ('', 8000)
-            server = StreamingServer(address, StreamingHandler)
-            server.serve_forever()
-        finally:
-            camera.stop_recording()
-
-
-    # camera = PiCamera()
-    # camera.resolution = (1024, 768)
-    # camera.start_preview()
-    # # Camera warm-up time
-    # time.sleep(2)
-    # camera.capture('foo.jpg')
-
-blynk = blynklib.Blynk(BLYNK_AUTH)
-
-CONNECT_PRINT_MSG = '[CONNECT_EVENT]'
-DISCONNECT_PRINT_MSG = '[DISCONNECT_EVENT]'
-
-@blynk.handle_event("connect")
-def connect_handler():
-    print(CONNECT_PRINT_MSG)
-    print("Attempt Capture")
-    #capture()
-    # blynk.disconnect()
-
-
-
-@blynk.handle_event("disconnect")
-def disconnect_handler():
-    print(DISCONNECT_PRINT_MSG)
-    print('Sleeping 4 sec in disconnect handler...')
-    time.sleep(4)
-
-
-###########################################################
-# infinite loop that waits for event
-###########################################################
-while True:
-    blynk.run()
+with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
+    output = StreamingOutput()
+    #Uncomment the next line to change your Pi's Camera rotation (in degrees)
+    #camera.rotation = 90
+    camera.start_recording(output, format='mjpeg')
+    try:
+        address = ('', 8000)
+        server = StreamingServer(address, StreamingHandler)
+        server.serve_forever()
+    finally:
+        camera.stop_recording()
