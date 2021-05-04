@@ -4,7 +4,7 @@ import logging
 import socketserver
 from threading import Condition
 from http import server
-
+#https://picamera.readthedocs.io/en/release-1.13/recipes2.html#web-streaming
 PAGE="""\
 <html>
 <head>
